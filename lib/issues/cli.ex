@@ -8,14 +8,15 @@ defmodule Issues.CLI do
   """
 
   def run(argv) do
-    parse_args(argv)
+    parse_args(argv) |>
+    process
   end
 
   @doc """
   `argv` can include -h/--help, which will display a help message.
 
   Otherwise, argv should include a GitHub user, a project name, and an optional
-  count of projects to display, defaulting to @default_count.
+  count of projects to display, defaulting to #{@default_count}.
 
   Returns `:help` if it is requested, or if inputs are not understood; and
   otherwise a tuple of `{user name, project name, count}`.
@@ -33,6 +34,19 @@ defmodule Issues.CLI do
       {_, [user, project], _} -> {user, project, @default_count}
       {_, _, _} -> :help
     end
+  end
+
+  def process(:help) do
+    IO.puts """
+    Get the most recent GitHub issues for a project.
+
+    Usage: issues <user> <project> [ <count> | #{@default_count} ]
+    """
+    System.halt(0)
+  end
+
+  def process({user, project, _count}) do
+    Issues.GitHubIssues.fetch(user, project)
   end
 
 end
