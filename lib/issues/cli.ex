@@ -3,13 +3,14 @@ defmodule Issues.CLI do
   @default_count 4
 
   @moduledoc """
-  Command line parsing and dispatch for generating a table of the most recent
+  Command line parsing and dispatch for generating a table of the oldest
   _n_ issues in a given github project.
   """
 
   def run(argv) do
     parse_args(argv)
     |> process
+    |> Issues.GitHubIssues.sort_from_oldest_creation_time
   end
 
   @doc """
@@ -58,7 +59,7 @@ defmodule Issues.CLI do
   def decode_response({:error, response}) do
     IO.puts("Unexpected error connecting to GitHub.")
     IO.inspect(response)
-    System.halt(3) 
+    System.halt(3)
   end
 
 end

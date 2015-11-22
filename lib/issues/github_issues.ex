@@ -16,4 +16,8 @@ defmodule Issues.GitHubIssues do
     do: {:error, Poison.decode!(body)}
   def handle_response({:error, response}), do: {:error, response}
 
+  def sort_from_oldest_creation_time(issues) do
+    Enum.sort(issues, fn(i1, i2) -> i1["created_at"] <= i2["created_at"] end)
+  end
+
 end
