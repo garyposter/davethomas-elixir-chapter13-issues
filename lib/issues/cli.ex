@@ -8,8 +8,8 @@ defmodule Issues.CLI do
   """
 
   def run(argv) do
-    parse_args(argv) |>
-    process
+    parse_args(argv)
+    |> process
   end
 
   @doc """
@@ -47,6 +47,18 @@ defmodule Issues.CLI do
 
   def process({user, project, _count}) do
     Issues.GitHubIssues.fetch(user, project)
+    |> decode_response
+  end
+
+  def decode_response({:ok, body}), do: body
+  def decode_response({:error, %{"message": message}}) do
+    IO.puts("Error fetching from GitHub: #{message}")
+    System.halt(2)
+  end
+  def decode_response({:error, response}) do
+    IO.puts("Unexpected error connecting to GitHub.")
+    IO.inspect(response)
+    System.halt(3) 
   end
 
 end
