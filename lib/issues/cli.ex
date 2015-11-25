@@ -7,7 +7,7 @@ defmodule Issues.CLI do
   _n_ issues in a given github project.
   """
 
-  def run(argv) do
+  def main(argv) do
     parse_args(argv)
     |> process
   end
@@ -50,9 +50,10 @@ defmodule Issues.CLI do
     |> decode_response
     |> Issues.GitHubIssues.sort_from_oldest_creation_time
     |> Enum.take(count)
-    |> CLITable.generate_table_data_from_maps(["number", "created_at", "title"])
-    |> CLITable.generate_table(["#", "Created at", "Title"])
-    |> IO.puts
+    |> Issues.CLITable.generate_table_data_from_maps(
+      ["number", "created_at", "title"])
+    |> Issues.CLITable.generate_table(["#", "Created at", "Title"])
+    |> Enum.map(&IO.puts/1)
   end
 
   def decode_response({:ok, body}), do: body
