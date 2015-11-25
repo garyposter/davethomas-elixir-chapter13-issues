@@ -10,7 +10,6 @@ defmodule Issues.CLI do
   def run(argv) do
     parse_args(argv)
     |> process
-    |> Issues.GitHubIssues.sort_from_oldest_creation_time
   end
 
   @doc """
@@ -46,9 +45,14 @@ defmodule Issues.CLI do
     System.halt(0)
   end
 
-  def process({user, project, _count}) do
+  def process({user, project, count}) do
     Issues.GitHubIssues.fetch(user, project)
     |> decode_response
+    |> Issues.GitHubIssues.sort_from_oldest_creation_time
+    |> Enum.take(count)
+    |> CLITable.generate_table_data_from_maps(["number", "created_at", "title"])
+    |> CLITable.generate_table(["#", "Created at", "Title"])
+    |> IO.puts
   end
 
   def decode_response({:ok, body}), do: body
