@@ -8,7 +8,9 @@ defmodule Issues.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      escript: escript_config,
-     deps: deps]
+     deps: deps,
+     name: "Issues"
+   ]
   end
 
   # Configuration for the OTP application
@@ -32,6 +34,10 @@ defmodule Issues.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:httpoison, "~> 0.8.0"}, {:poison, "~> 1.5.0"}]
+    [{:httpoison, "~> 0.8.0"},
+     {:poison, "~> 1.5.0"},
+     {:ex_doc, "~> 0.11.1"},
+     {:earmark, "~> 0.1.19"}
+   ]
   end
 end
