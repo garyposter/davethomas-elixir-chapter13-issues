@@ -1,5 +1,7 @@
 defmodule CLITableTest do
   use ExUnit.Case
+  doctest Issues.CLITable
+
   import Issues.CLITable, only: [
     get_row_data: 2,
     update_max_lengths: 2,

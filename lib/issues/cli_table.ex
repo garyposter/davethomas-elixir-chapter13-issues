@@ -4,42 +4,83 @@ defmodule Issues.CLITable do
   Helper functions to create CLI Tables.
   """
 
-  def generate_table({table_data, lengths}, headers) do
-    lengths = update_max_lengths(headers, lengths)
-    [generate_row(headers, lengths) |
-      [generate_divider(lengths) |
-        Enum.map(table_data, &(generate_row(&1, lengths)))]]
+  @doc """
+  Given table data and desired column widths such as generated from
+  `generate_table_data_from_maps`, and display headers, produce a list of
+  strings that can be rendered on a CLI or similar.
+  """
+  def generate_table({table_data, widths}, headers) do
+    widths = update_max_lengths(headers, widths)
+    [generate_row(headers, widths) |
+      [generate_divider(widths) |
+        Enum.map(table_data, &(generate_row(&1, widths)))]]
   end
 
-  def generate_row(content, lengths) do
+  @doc """
+  Given a row of content and desired width for each, produce a string
+  representing the row.
+
+  ## Example
+
+    iex> Issues.CLITable.generate_row(["foo", "barbaz"], [6, 5])
+    "foo    ┃ barba"
+  """
+  def generate_row(content, widths) do
     Enum.map_join(
-      Enum.zip(content, lengths),
+      Enum.zip(content, widths),
       " \u2503 ", # ┃
-      fn({string, length}) ->
-        String.ljust(String.slice(string, 0, length), length)
+      fn({string, width}) ->
+        String.ljust(String.slice(string, 0, width), width)
       end)
   end
 
-  def generate_divider(lengths) do
+  @doc """
+  Given a list of widths, produce a horizontal divider.
+
+  ## Example
+
+    iex> Issues.CLITable.generate_divider([3,5,2])
+    "━━━━╋━━━━━━━╋━━━"
+  """
+  def generate_divider(widths) do
     Enum.map_join(
-      lengths,
+      widths,
       "\u2501\u254B\u2501", # ━╋━
-      fn(length) ->
-        String.duplicate("\u2501", length) # ━
+      fn(width) ->
+        String.duplicate("\u2501", width) # ━
       end)
   end
 
-  def generate_table_data_from_maps(issues, keys) do
+  @doc """
+  Given a collection of maps and desired keys, return a collection of lists of
+  the stringified values for the desired keys from each map; and a list of the
+  max string lengths of the values in each column.
+
+    iex> Issues.CLITable.generate_table_data_from_maps(
+    ...> [%{"a" => 42, "b" => "foobar", "c" => "dinos"},
+    ...>  %{"a" => 2015, "b" => "Thanksgiving", "c" => "yo"}], ["c", "a"])
+    {[["dinos", "42"], ["yo", "2015"]], [5, 4]}
+  """
+  def generate_table_data_from_maps(maps, keys) do
     lengths = List.duplicate(0, Enum.count(keys))
     Enum.map_reduce(
-      issues,
+      maps,
       lengths,
-      fn(issue, lengths) ->
-        strings = get_row_data(issue, keys)
+      fn(map, lengths) ->
+        strings = get_row_data(map, keys)
         {strings, update_max_lengths(strings, lengths)}
       end)
   end
 
+  @doc """
+  Helps calculating the max string lengths of a collection of rows of strings.
+  This function receives the strings from one row of the collection, and the
+  current max string lengths.  Return the updated max lengths to take the new
+  row into account.
+
+    iex> Issues.CLITable.update_max_lengths(["foo", "shazam"], [4, 5])
+    [4, 6]
+  """
   def update_max_lengths(strings, lengths) do
     Enum.map(
       Enum.zip(strings, lengths),
@@ -48,6 +89,14 @@ defmodule Issues.CLITable do
       end)
   end
 
+  @doc """
+  Given a map and a collection of keys, return a collection of stringified
+  values from the map, matching the given keys.
+
+    iex> Issues.CLITable.get_row_data(
+    ...> %{"a" => 42, "b" => "foobar", "c" => "dinos"}, ["c", "a"])
+    ["dinos", "42"]
+  """
   def get_row_data(map, keys) do
     keys |> Enum.map(&(map[&1])) |> Enum.map(&to_string/1)
   end
